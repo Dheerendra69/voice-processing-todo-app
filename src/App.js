@@ -6,32 +6,30 @@ import useVoiceCommand from "./hooks/useVoiceCommand";
 import parseCommand from "./utils/commandParser";
 
 const LOCAL_STORAGE_KEY = "voice-todo-tasks";
-const EXPIRY_DAYS = 3;
 
 function App() {
   const [tasks, setTasks] = useState([]);
 
   useEffect(() => {
-    const data = JSON.parse(localStorage.getItem(LOCAL_STORAGE_KEY));
-    if (data) {
-      const now = new Date().getTime();
-      const age = now - data.timestamp;
-      const maxAge = EXPIRY_DAYS * 24 * 60 * 60 * 1000; 
-
-      if (age < maxAge) {
-        setTasks(data.tasks);
-      } else {
-        localStorage.removeItem(LOCAL_STORAGE_KEY);
-      }
+    try {
+      const saved = JSON.parse(localStorage.getItem(LOCAL_STORAGE_KEY));
+      setTasks(saved.tasks);
+      console.log(saved);
+    } catch (err) {
+      console.error("Failed to read tasks:", err);
+      // localStorage.removeItem(LOCAL_STORAGE_KEY);
     }
   }, []);
 
   useEffect(() => {
-    const payload = {
-      tasks,
-      timestamp: new Date().getTime(),
-    };
-    localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(payload));
+    try {
+      const payload = {
+        tasks,
+      };
+      localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(payload));
+    } catch (err) {
+      console.error("Failed to save tasks:", err);
+    }
   }, [tasks]);
 
   const addTask = (text) => {
@@ -78,6 +76,28 @@ function App() {
           >
             {isListening ? "Stop Listening" : "Start Voice Command 🎙️"}
           </button>
+        </div>
+
+        <div className="mt-6 p-4 bg-white border rounded-lg shadow text-gray-700 text-sm">
+          <h2 className="font-semibold text-base mb-2">
+            🎙 Voice Commands You Can Say:
+          </h2>
+          <ul className="list-disc list-inside space-y-1">
+            <li>
+              <span className="font-medium">Add task</span> to buy groceries
+            </li>
+            <li>
+              <span className="font-medium">Add task</span> to complete
+              assignment
+            </li>
+            <li>
+              <span className="font-medium">Delete task</span> buy groceries
+            </li>
+          </ul>
+          <p className="mt-3 italic text-gray-500 text-xs">
+            Note: After speaking, your command will be processed and listening
+            will automatically stop.
+          </p>
         </div>
       </div>
     </div>
